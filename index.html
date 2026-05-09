@@ -106,9 +106,10 @@
 
         <!-- 🔵 結果画面 -->
         <div id="result-screen" class="screen hidden">
-            <div id="capture-target">
+            <!-- 🌟 画像にするのはこの中身だけ！ -->
+            <div id="capture-target" style="background: #fff; padding: 25px; border-radius: 20px;">
                 <div class="result-header">
-                    <h2 id="poem-title">「〇〇と〇〇の色彩」</h2>
+                    <h2 id="poem-title" style="color:#333; margin-bottom:15px;">「〇〇と色彩」</h2>
                 </div>
                 
                 <div class="palette-container">
@@ -118,30 +119,28 @@
                 </div>
 
                 <div class="analysis-result">
-                    <h3><i class="fa-solid fa-fingerprint"></i> インタラクション解析ログ</h3>
-                    <ul id="log-list"></ul>
-                    
-                    <!-- 🌟 追加：データベース照合エリア -->
-                    <div id="db-result" style="margin-top: 15px; padding: 10px; background: rgba(161,196,253,0.2); border-radius: 8px; text-align: center; font-weight: bold; color: #4a4e69;">
-                        <i class="fa-solid fa-satellite-dish fa-beat"></i> データベースと照合中...
+                    <ul id="log-list" style="list-style:none; padding:0; text-align:left; color:#666; font-size:13px;"></ul>
+                    <div id="db-result" style="margin-top: 15px; padding: 10px; background: rgba(161,196,253,0.1); border-radius: 10px; text-align: center; font-weight: bold; color: #4a4e69;">
+                        照合中...
                     </div>
                 </div>
-            <div class="action-buttons">
+            </div>
+
+            <!-- 🌟 ここから下のボタンは画像に含まれません！ -->
+            <div class="action-buttons" style="margin-top: 20px;">
                 <button id="share-btn"><i class="fa-solid fa-share-nodes"></i> 共有する</button>
                 <button id="save-btn"><i class="fa-solid fa-camera"></i> 結果を画像にする</button>
             </div>
             
-            <!-- 保存用画像＆PC用ダウンロードリンク -->
             <div id="image-output" class="hidden">
-                <p class="small-text save-hint">↓スマホは長押し保存 / PCは下のボタンから↓</p>
-                <img id="generated-image" src="" alt="診断結果" class="result-img">
-                <a id="download-link" href="" download="chromalog-result.png" class="primary-btn" style="display:block; text-align:center; text-decoration:none; margin-top:10px;"><i class="fa-solid fa-download"></i> PC: 画像をダウンロード</a>
+                <p class="small-text" style="color:#ff758c; font-weight:bold;">↓スマホは長押し保存！</p>
+                <img id="generated-image" src="" alt="診断結果" style="width: 100%; border-radius: 10px; border: 1px solid #ddd;">
             </div>
 
-            <!-- タイトルに戻るボタン追加！ -->
-            <button id="retry-btn" class="sub-btn" style="width: 100%; margin-top: 20px;"><i class="fa-solid fa-rotate-left"></i> もう一度診断する</button>
+            <button id="retry-btn" class="sub-btn" style="width: 100%; margin-top: 20px; background:#eee; border:none; padding:10px; border-radius:10px; cursor:pointer;">
+                <i class="fa-solid fa-rotate-left"></i> タイトルに戻る
+            </button>
         </div>
-    </div>
     <script src="data.js"></script>
     <script src="script.js"></script>
 </body>
