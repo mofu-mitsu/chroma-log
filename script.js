@@ -1,14 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
     const navLink = document.getElementById("nav-link");
-    // 🌟 みつきのGAS URL（ここはこのままでOK！）
     const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw4apfXVC5xixNmMDGvdMQY9t2ST2TuXbSKV0A9baoAPIEnOM8OGY7Zxnp086NJyNpvwA/exec"; 
 
-    // --- 🐛 芋虫 ---
+    // --- 🐛 芋虫 (LSI-Ni設定) ---
     let wormClicks = 0;
     let wormCrushed = false;
     const worm = document.getElementById("caterpillar");
     const bubble = document.getElementById("caterpillar-speech");
-    const wormLines = ["非効率だ。", "僕のTiとSeで斬る。", "システムにバグは？", "触りすぎだ。30回で壊れるぞ。", "無意味な操作だ。"];
+    const wormLines = ["非効率だ。", "僕のTiとSeで斬る。", "システムにバグは？", "触りすぎだ。30回で壊れるぞ。", "無意味な操作だ。","僕がここにいる意味を推測しろ。", "その行動の目的は何だ？","ふん……。"];
 
     worm.addEventListener("click", () => {
         if (wormCrushed) return;
@@ -27,8 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
         worm.bubbleTimer = setTimeout(() => bubble.classList.add("hidden"), 2000);
     });
 
-    // --- 🔴 タイトル長押し (ふわっとアニメーション復活) ---
-    let holdTime = 0;
+    // --- 🔴 タイトル長押し (ミリ秒精度へ) ---
+    let holdStartTime = 0;
+    let holdDuration = 0;
     let startTime = 0;
     const startBtn = document.getElementById("start-btn");
     const inkBg = document.getElementById("ink-bg");
@@ -36,27 +36,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const startHold = (e) => {
         if(e.cancelable) e.preventDefault();
-        startBtn.classList.add("pressed"); // ふわっとへこむ
+        startBtn.classList.add("pressed");
+        holdStartTime = Date.now();
         holdInterval = setInterval(() => {
-            holdTime += 50;
-            inkBg.style.width = `${holdTime * 0.6}px`;
-            inkBg.style.height = `${holdTime * 0.6}px`;
+            let nowHold = Date.now() - holdStartTime;
+            inkBg.style.width = `${nowHold * 0.5}px`;
+            inkBg.style.height = `${nowHold * 0.5}px`;
             inkBg.style.opacity = "1";
-        }, 50);
+        }, 30);
     };
 
     const endHold = () => {
         clearInterval(holdInterval);
         startBtn.classList.remove("pressed");
-        if (holdTime > 300) {
-            startTime = Date.now();
+        holdDuration = Date.now() - holdStartTime;
+        if (holdDuration > 300) {
+            startTime = Date.now(); // 診断開始時間
             document.getElementById("title-screen").classList.add("hidden");
             document.getElementById("question-screen").classList.remove("hidden");
             inkBg.style.opacity = "0"; 
             navLink.innerHTML = `<i class="fa-solid fa-rotate-left"></i> タイトルに戻る`;
             navLink.href = "javascript:location.reload();";
         } else {
-            holdTime = 0;
+            holdDuration = 0;
             inkBg.style.width = "0px";
             inkBg.style.height = "0px";
         }
@@ -216,12 +218,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const finalizeColor = () => {
+        const endTime = Date.now();
+        const diagnosticDuration = endTime - startTime; // 診断にかかった全ミリ秒数
+
         document.getElementById("loading-screen").classList.add("hidden");
         document.getElementById("result-screen").classList.remove("hidden");
 
-        let baseR = 50 + parseInt(document.getElementById("q_energy").value);
-        let baseG = 50 + parseInt(document.getElementById("q_chaos").value);
-        let baseB = 50 + parseInt(document.getElementById("q_logic").value);
+        // 🌟 基礎値にミリ秒単位のエントロピー（迷い）を注入
+        // これにより「何も選ばなかった人」同士でもミリ秒の差で色がズレる
+        let entropyR = (diagnosticDuration % 10);
+        let entropyG = (holdDuration % 10);
+        let entropyB = (endTime % 10);
+
+        let baseR = 50 + parseInt(document.getElementById("q_energy").value) + entropyR;
+        let baseG = 50 + parseInt(document.getElementById("q_chaos").value) + entropyG;
+        let baseB = 50 + parseInt(document.getElementById("q_logic").value) + entropyB;
 
         selectedMotifs.forEach((m, i) => {
             let w = i===0?1.0:(i===1?0.6:0.3);
@@ -232,12 +243,12 @@ document.addEventListener("DOMContentLoaded", () => {
         let textLog = "標準";
         if (text === "わからない" || text === "不明" || text === "無" || text === "特になし") {
             baseR -= 30; baseG -= 10; baseB += 40;
-            textLog = "感情の言語化放棄(Ti優勢) → 青色増幅";
+            textLog = "言語化放棄(Ti) → 青増幅";
         } else {
             const kanji = (text.match(/[\u4E00-\u9FAF]/g) || []).length;
             const hira = (text.match(/[\u3040-\u309F]/g) || []).length;
-            if(kanji > hira) { baseB += 15; textLog = "漢字多用 (客観・無機質)"; }
-            else if(hira > kanji) { baseR += 15; textLog = "ひらがな多用 (主観・柔和)"; }
+            if(kanji > hira) { baseB += 15; textLog = "漢字多用"; }
+            else if(hira > kanji) { baseR += 15; textLog = "ひらがな多用"; }
         }
 
         const filledRatio = getFilledRatio();
@@ -246,7 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
         baseB += (255 - baseB) * ((100 - filledRatio) / 100) * 0.5;
 
         const distFromCenter = Math.hypot(finalPos.x - 50, finalPos.y - 50);
-        let posLog = distFromCenter < 20 ? "中央付近(自己安定)" : "端付近(境界・孤立意識)";
         if(distFromCenter > 30) { baseB += 20; }
 
         const morningVal = document.querySelector(`input[name="q_morning"]:checked`).value;
@@ -255,10 +265,26 @@ document.addEventListener("DOMContentLoaded", () => {
         let noise = document.querySelector(`input[name="q_contradiction"]:checked`).value === "conflict" ? 40 : 0;
         if (skippedWait) noise += 50;
 
+        // 🌟 24時間・空色ロジックの強化
         const hour = new Date().getHours();
-        let timeLog = "通常";
-        if (hour >= 18 || hour < 4) { baseB += 20; baseR -= 10; timeLog = "夜間 (深み・青み補正)"; }
-        else if (hour >= 4 && hour < 10) { baseR += 20; baseG += 20; timeLog = "早朝 (光・白み補正)"; }
+        let timeLog = "昼間";
+        if (hour >= 0 && hour < 4) {
+            baseB += 40; baseR -= 20; timeLog = "深夜 (極夜)";
+        } else if (hour >= 4 && hour < 7) {
+            baseR += 30; baseG += 20; baseB -= 10; timeLog = "明け方 (日の出)";
+        } else if (hour >= 7 && hour < 16) {
+            baseG += 10; baseB += 10; timeLog = "昼間 (青空)";
+        } else if (hour >= 16 && hour < 19) {
+            baseR += 40; baseG += 15; baseB -= 20; timeLog = "夕方 (黄昏)";
+        } else {
+            baseB += 30; baseR -= 10; timeLog = "夜 (宵闇)";
+        }
+
+        // 🌟 長押しの深さをより細かく反映
+        const holdFactor = Math.min(holdDuration / 3000, 1.0); // 0〜1.0
+        baseR *= (1.0 - (holdFactor * 0.3));
+        baseG *= (1.0 - (holdFactor * 0.3));
+        baseB *= (1.0 - (holdFactor * 0.3));
 
         const bm = parseInt(document.getElementById("birth-month").value || 1);
         const bd = parseInt(document.getElementById("birth-day").value || 1);
@@ -288,18 +314,19 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("poem-title").textContent = `「${w1}と${w2}の色彩」`;
 
         const finalLogs = `
-            <li>長押し浸透率: ${(holdTime/1000).toFixed(1)}秒</li>
+            <li>長押し浸透率: ${(holdDuration/1000).toFixed(2)}秒</li>
             <li>言語解析: ${textLog}</li>
             <li>心の余白: <strong>${100 - filledRatio}%</strong></li>
-            <li>光の配置: ${posLog}</li>
-            <li>時間帯: ${timeLog}</li>
+            <li>時間帯補正: ${timeLog}</li>
             <li>待機耐性: ${skippedWait ? "待てない(ノイズ増幅)" : "待機成功"}</li>
-            <li>理想色(${favHex})との乖離率: <strong>${gap}%</strong></li>
-            <li>芋虫への干渉: ${wormCrushed ? "破壊 (赤色汚染)" : wormClicks+"回"}</li>
+            <li>理想色との乖離率: <strong>${gap}%</strong></li>
+            <li>ミリ秒エントロピー: ${diagnosticDuration % 1000}ms</li>
+            <li>芋虫への干渉: ${wormCrushed ? "破壊 (赤色汚染)" : wormClicks + "回"}</li>
         `;
         document.getElementById("log-list").innerHTML = finalLogs;
+        document.getElementById("log-list").innerHTML = finalLogs;
 
-        // --- 🌟 GAS送信 (スマホキャッシュ対策版) ---
+        // --- 🌟 GAS送信 ---
         if (GAS_WEBAPP_URL) {
             const dbArea = document.getElementById("db-result");
             const cleanLogs = finalLogs.replace(/<[^>]*>?/gm, ''); 
@@ -307,12 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 main: mainHex, sub: subHex, accent: accHex, logs: cleanLogs, _t: Date.now()
             }).toString();
 
-            const timeoutId = setTimeout(() => {
-                if (dbArea.innerHTML.includes("照合中")) dbArea.innerHTML = "※通信タイムアウト";
-            }, 10000);
-
             window.gasCallback = function(data) {
-                clearTimeout(timeoutId);
                 if (data.error) { dbArea.innerHTML = `※エラー: ${data.details}`; return; }
                 let html = data.perfectMatch === 0 ? 
                     `✨ 驚異的！全世界で<br><strong style="font-size:18px; color:#ff758c;">あなたが初めて</strong>この色を出しました。<br>` : 
@@ -326,12 +348,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const script = document.createElement("script");
             script.id = "gas-script";
             script.src = `${GAS_WEBAPP_URL}?${query}&callback=gasCallback`;
-            script.onerror = () => { clearTimeout(timeoutId); dbArea.innerHTML = "※接続失敗"; };
             document.body.appendChild(script);
         }
     };
 
-    // --- 📸 シェア・PC保存 ---
     const url = "https://mofu-mitsu.github.io/chroma-log/";
     document.getElementById("share-btn").onclick = async () => {
         const text = document.getElementById("poem-title").textContent + "になったよ！唯一無二の心理カラー診断";
@@ -343,8 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const target = document.getElementById("capture-target");
         html2canvas(target, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const imgData = canvas.toDataURL("image/png");
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            if (!isMobile) {
+            if (!(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))) {
                 const link = document.createElement("a");
                 link.href = imgData; link.download = "chromalog-result.png"; link.click();
             } else {
