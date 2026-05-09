@@ -103,3 +103,13 @@ canvas { background: #f0f0f0; border: 2px dashed #ccc; border-radius: 8px; curso
     box-shadow: inset 0 4px 10px rgba(0,0,0,0.1); 
     background: #f8faff;
 }
+
+/* 画像がちゃんと表示されるように念押し */
+#generated-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 10px auto;
+    border: 3px solid #fff;
+    background: #fff; /* 背景を白にして透明化を防ぐ */
+}
