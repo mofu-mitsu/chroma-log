@@ -354,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const url = "https://mofu-mitsu.github.io/chroma-log/";
     document.getElementById("share-btn").onclick = async () => {
-        const text = document.getElementById("poem-title").textContent + "になったよ！唯一無二の心理カラー診断";
+        const text = document.getElementById("poem-title").textContent + "になったよ！唯一無二の心理カラー診断 #chroma-log #診断";
         if (navigator.share) { await navigator.share({ title: "Chroma Log", text: text, url: url }); } 
         else { alert("URLをコピーしました！"); navigator.clipboard.writeText(url); }
     };
