@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO & OGP メタタグ -->
+    <title>Chroma Log | 唯一無二の深層心理カラー診断</title>
+    <meta name="description" content="約1658万色からあなただけの色を生成する次世代の深層心理カラー診断。あなたの迷いや行動ログが色になります。">
+    <meta name="keywords" content="心理テスト,色診断,MBTI,性格診断,カラーパレット,ChromaLog">
+    <meta property="og:title" content="Chroma Log | 深層心理カラー診断">
+    <meta property="og:description" content="あなたの無意識の行動や迷いが「色」になる、体験型の心理カラー解析ツールです。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mofu-mitsu.github.io/chroma-log/">
+    <meta property="og:image" content="https://mofu-mitsu.github.io/chroma-log/ogp.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Chroma Log | 深層心理カラー診断">
+    <meta name="twitter:description" content="1658万通りから、あなただけの色を錬成します。">
+    <meta name="twitter:image" content="https://mofu-mitsu.github.io/chroma-log/ogp.png">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="top-nav">
+        <a href="https://mofu-mitsu.github.io/lab.html" id="nav-link"><i class="fa-solid fa-house"></i> ホームに戻る</a>
+    </header>
+
+    <div id="caterpillar-container">
+        <div id="caterpillar-speech" class="speech-bubble hidden"></div>
+        <div id="caterpillar">🐛</div>
+    </div>
+
+    <div id="ink-bg"></div>
+
+    <div class="container" id="main-container">
+        <!-- 🔴 タイトル画面 -->
+        <div id="title-screen" class="screen">
+            <h1 class="title-anim">Chroma Log<br><span class="title-sub">深層心理カラー診断</span></h1>
+            <p class="subtitle">255×255×255の約1658万通りから<br>あなたのログが色になる。</p>
+            <div class="hold-btn-container">
+                <button id="start-btn" class="hold-btn">心を開くまで長押し</button>
+            </div>
+            <p class="small-text">触れている時間が「色の深度」を決めます</p>
+        </div>
+
+        <!-- 🟡 診断画面 -->
+        <div id="question-screen" class="screen hidden">
+            
+            <div class="input-group">
+                <label><i class="fa-solid fa-heart"></i> 今、惹かれる色(理想の色)は？</label>
+                <input type="color" id="fav-color" value="#a1c4fd">
+            </div>
+
+            <div class="input-group">
+                <label><i class="fa-solid fa-moon"></i> 今の気分をひとことで</label>
+                <input type="text" id="mood-text" placeholder="例：なんか疲れた / わからない" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label><i class="fa-solid fa-cake-candles"></i> 誕生日 (隠し味になります)</label>
+                <div class="date-inputs">
+                    <input type="number" id="birth-month" min="1" max="12" placeholder="月">
+                    <input type="number" id="birth-day" min="1" max="31" placeholder="日">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label><i class="fa-solid fa-hand-sparkles"></i> 光の粒を好きな場所に運んで</label>
+                <div class="drag-area" id="drag-area">
+                    <p class="drag-text">軌道と最終位置を解析します</p>
+                    <div id="light-particle">✨</div>
+                </div>
+            </div>
+
+            <!-- 🟩 Canvas(お絵かき)の心の余白ギミック -->
+            <div class="input-group">
+                <label><i class="fa-solid fa-paintbrush"></i> あなたの心の余白を塗ってください</label>
+                <p class="small-text" style="margin-bottom: 5px;">指やマウスで自由に塗りつぶしてね</p>
+                <div class="canvas-container">
+                    <canvas id="margin-canvas" width="300" height="150"></canvas>
+                </div>
+                <button id="clear-canvas-btn" class="sub-btn"><i class="fa-solid fa-eraser"></i> 塗り直す</button>
+            </div>
+
+            <div id="sliders-container"></div>
+            <div id="radio-container"></div>
+            
+            <div class="input-group">
+                <label><i class="fa-solid fa-gem"></i> 惹かれるモチーフは？(最大3つ)</label>
+                <div id="motif-container" class="motif-grid"></div>
+            </div>
+
+            <button id="submit-btn" class="primary-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> 抽出開始</button>
+        </div>
+
+        <!-- 🟢 ローディング画面 -->
+        <div id="loading-screen" class="screen hidden">
+            <div class="color-mixer">
+                <div class="circle red"></div><div class="circle blue"></div><div class="circle green"></div>
+            </div>
+            <p>無意識のログを抽出中...</p>
+            <!-- 待てないボタン復活！ -->
+            <button id="skip-btn" class="hidden-skip">待てない (抽出を急ぐ)</button>
+        </div>
+
+        <!-- 🔵 結果画面 -->
+        <div id="result-screen" class="screen hidden">
+            <div id="capture-target">
+                <div class="result-header">
+                    <h2 id="poem-title">「〇〇と〇〇の色彩」</h2>
+                </div>
+                
+                <div class="palette-container">
+                    <div class="color-box" id="main-color-box"><span class="color-label">Main</span><span class="hex-code" id="main-hex"></span></div>
+                    <div class="color-box" id="sub-color-box"><span class="color-label">Sub</span><span class="hex-code" id="sub-hex"></span></div>
+                    <div class="color-box" id="accent-color-box"><span class="color-label">Accent</span><span class="hex-code" id="accent-hex"></span></div>
+                </div>
+
+                <div class="analysis-result">
+                    <h3><i class="fa-solid fa-fingerprint"></i> インタラクション解析ログ</h3>
+                    <ul id="log-list"></ul>
+                    
+                    <!-- 🌟 追加：データベース照合エリア -->
+                    <div id="db-result" style="margin-top: 15px; padding: 10px; background: rgba(161,196,253,0.2); border-radius: 8px; text-align: center; font-weight: bold; color: #4a4e69;">
+                        <i class="fa-solid fa-satellite-dish fa-beat"></i> データベースと照合中...
+                    </div>
+                </div>
+            <div class="action-buttons">
+                <button id="share-btn"><i class="fa-solid fa-share-nodes"></i> 共有する</button>
+                <button id="save-btn"><i class="fa-solid fa-camera"></i> 結果を画像にする</button>
+            </div>
+            
+            <!-- 保存用画像＆PC用ダウンロードリンク -->
+            <div id="image-output" class="hidden">
+                <p class="small-text save-hint">↓スマホは長押し保存 / PCは下のボタンから↓</p>
+                <img id="generated-image" src="" alt="診断結果" class="result-img">
+                <a id="download-link" href="" download="chromalog-result.png" class="primary-btn" style="display:block; text-align:center; text-decoration:none; margin-top:10px;"><i class="fa-solid fa-download"></i> PC: 画像をダウンロード</a>
+            </div>
+
+            <!-- タイトルに戻るボタン追加！ -->
+            <button id="retry-btn" class="sub-btn" style="width: 100%; margin-top: 20px;"><i class="fa-solid fa-rotate-left"></i> もう一度診断する</button>
+        </div>
+    </div>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
